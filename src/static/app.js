@@ -35,6 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       enableDarkMode();
+    } else {
+      // Ensure light mode is properly set if theme is 'light' or null
+      disableDarkMode();
     }
   }
 
