@@ -642,9 +642,12 @@ document.addEventListener("DOMContentLoaded", () => {
     shareButtons.forEach((button) => {
       button.addEventListener("click", (e) => {
         e.preventDefault();
-        const platform = button.classList.contains('twitter') ? 'twitter' :
-                        button.classList.contains('facebook') ? 'facebook' :
-                        button.classList.contains('email') ? 'email' : 'web-share';
+        // Determine platform based on button's CSS classes
+        let platform = 'web-share';
+        if (button.classList.contains('twitter')) platform = 'twitter';
+        else if (button.classList.contains('facebook')) platform = 'facebook';
+        else if (button.classList.contains('email')) platform = 'email';
+        
         shareActivity(platform, name, details);
       });
     });
