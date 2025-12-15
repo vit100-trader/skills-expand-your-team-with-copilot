@@ -472,6 +472,55 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Function to generate share content for an activity
+  function generateShareContent(activityName, details) {
+    const formattedSchedule = formatSchedule(details);
+    const text = `Check out "${activityName}" at Mergington High School! ${details.description}`;
+    const url = window.location.href;
+    
+    return {
+      title: `Mergington High School - ${activityName}`,
+      text: text,
+      url: url,
+      emailSubject: `Check out ${activityName} at Mergington High School`,
+      emailBody: `I thought you might be interested in this activity:\n\n${activityName}\n${details.description}\n\nSchedule: ${formattedSchedule}\n\nLearn more at: ${url}`
+    };
+  }
+
+  // Function to handle social sharing
+  function shareActivity(platform, activityName, details) {
+    const shareContent = generateShareContent(activityName, details);
+    
+    switch(platform) {
+      case 'twitter':
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareContent.text)}&url=${encodeURIComponent(shareContent.url)}`;
+        window.open(twitterUrl, '_blank', 'width=550,height=420');
+        break;
+        
+      case 'facebook':
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareContent.url)}`;
+        window.open(facebookUrl, '_blank', 'width=550,height=420');
+        break;
+        
+      case 'email':
+        const mailtoUrl = `mailto:?subject=${encodeURIComponent(shareContent.emailSubject)}&body=${encodeURIComponent(shareContent.emailBody)}`;
+        window.location.href = mailtoUrl;
+        break;
+        
+      case 'web-share':
+        if (navigator.share) {
+          navigator.share({
+            title: shareContent.title,
+            text: shareContent.text,
+            url: shareContent.url
+          }).catch((error) => {
+            console.log('Error sharing:', error);
+          });
+        }
+        break;
+    }
+  }
+
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
@@ -569,12 +618,38 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="social-share-container">
+        <span class="social-share-label">Share:</span>
+        ${
+          navigator.share
+            ? `<button class="share-button web-share" data-activity="${name}" title="Share">📤</button>`
+            : ""
+        }
+        <button class="share-button twitter" data-activity="${name}" title="Share on Twitter">🐦</button>
+        <button class="share-button facebook" data-activity="${name}" title="Share on Facebook">📘</button>
+        <button class="share-button email" data-activity="${name}" title="Share via Email">✉️</button>
+      </div>
     `;
 
     // Add click handlers for delete buttons
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
     deleteButtons.forEach((button) => {
       button.addEventListener("click", handleUnregister);
+    });
+
+    // Add click handlers for share buttons
+    const shareButtons = activityCard.querySelectorAll(".share-button");
+    shareButtons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        e.preventDefault();
+        // Determine platform based on button's CSS classes
+        let platform = 'web-share';
+        if (button.classList.contains('twitter')) platform = 'twitter';
+        else if (button.classList.contains('facebook')) platform = 'facebook';
+        else if (button.classList.contains('email')) platform = 'email';
+        
+        shareActivity(platform, name, details);
+      });
     });
 
     // Add click handler for register button (only when authenticated)
